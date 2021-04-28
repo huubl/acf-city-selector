@@ -63,8 +63,8 @@
                 $key = $field['name'];
 
                 $select_options = array(
-                    1 => __( 'Yes', 'acf-city-selector' ),
-                    0 => __( 'No', 'acf-city-selector' )
+                    1 => esc_attr__( 'Yes', 'acf-city-selector' ),
+                    0 => esc_attr__( 'No', 'acf-city-selector' )
                 );
 
                 // Create Field Options HTML
@@ -110,7 +110,7 @@
                 if ( isset( $field[ 'value' ][ 'countryCode' ] ) ) {
                     $countrycode = $field[ 'value' ][ 'countryCode' ];
                 }
-                $countries = acfcs_populate_country_select( $field );
+                $countries = acfcs_get_countries( true, $field );
                 ?>
                 <div class="dropdown-box cs-countries">
                     <?php if ( $field['show_labels'] == 1 ) { ?>
@@ -204,7 +204,7 @@
                 if ( isset( $_GET[ 'action' ] ) && $_GET[ 'action' ] === 'edit' ) {
 
                     if ( isset( $_GET[ 'id' ] ) ) {
-                        $post_id = $_GET[ 'id' ];
+                        $post_id = (int) $_GET[ 'id' ];
                     } else {
                         $post_id = get_the_ID();
                     }
@@ -256,13 +256,14 @@
                     $state_code = substr( $value['stateCode'], 3 );
                 }
                 if ( strlen( $country_code ) == 2 && ( isset( $value['stateCode'] ) && '-' != $value['stateCode'] ) && ( isset( $value['cityName'] ) && 'Select a city' != $value['cityName'] ) ) {
-                    $table                = $wpdb->prefix . 'cities';
-                    $row                  = $wpdb->get_row( "SELECT country, state_name FROM $table WHERE country_code= '$country_code' AND state_code= '$state_code'" );
-                    $country              = $row->country;
-                    $state_name           = $row->state_name;
-                    $value['stateCode']   = $state_code;
-                    $value['stateName']   = $state_name;
-                    $value['countryName'] = $country;
+                    $table                  = $wpdb->prefix . 'cities';
+                    $sql_query              = $wpdb->prepare( "SELECT country, state_name FROM %s WHERE country_code= %s AND state_code= %s", $table, $country_code, $state_code );
+                    $row                    = $wpdb->get_row( $sql_query );
+                    $country                = $row->country;
+                    $state_name             = $row->state_name;
+                    $value[ 'stateCode' ]   = $state_code;
+                    $value[ 'stateName' ]   = $state_name;
+                    $value[ 'countryName' ] = $country;
                 }
 
                 return $value;
